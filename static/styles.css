@@ -1,0 +1,254 @@
+/* Reset e fonte base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #121212; /* fundo escuro */
+  color: #E0E0E0;
+  line-height: 1.6;
+  padding: 1rem;
+}
+
+/* Cabeçalho */
+header {
+  background: linear-gradient(to right, #6C4AB6, #3C1E70); /* degradê roxo */
+  color: white;
+  padding: 2rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Navegação */
+nav {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+nav a {
+  background-color: rgba(255,255,255,0.1);
+  color: #FFFFFF;
+  font-weight: bold;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+nav a:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Flash messages */
+.flash-messages {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.flash {
+  padding: 1rem;
+  border-radius: 6px;
+  margin: 0.5rem auto;
+  max-width: 800px;
+  font-weight: bold;
+}
+
+.flash.success {
+  background-color: #2e7d32;
+  color: #e0ffe0;
+  border-left: 6px solid #4caf50;
+}
+
+.flash.error {
+  background-color: #8b1a1a;
+  color: #ffd6d6;
+  border-left: 6px solid #dc3545;
+}
+
+/* Conteúdo principal */
+main {
+  max-width: 800px;
+  margin: auto;
+  background: #1E1E1E;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+main h2 {
+  color: #BB86FC;
+  margin-bottom: 1.5rem;
+}
+
+/* Tabela de livros */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #1E1E1E;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+th, td {
+  text-align: left;
+  padding: 1rem;
+  border-bottom: 1px solid #2E2E2E;
+}
+
+thead {
+  background-color: #6C4AB6;
+  color: white;
+}
+
+tbody tr:hover {
+  background-color: #2a2a2a;
+  transition: background-color 0.3s ease;
+}
+
+/* Ações (Editar e Deletar) */
+td a {
+  display: inline-block;
+  margin-right: 1rem;
+  color: #BB86FC;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 0.4rem 1.5rem;
+  background-color: #2E2E2E;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+  margin-bottom: 10px;
+}
+
+td a:hover {
+  background-color: #6C4AB6;
+  color: white;
+}
+
+td form {
+  display: inline;
+}
+
+td button {
+  background-color: #DC3545;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+td button:hover {
+  background-color: #A71D2A;
+}
+
+/* Formulário */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+form label {
+  font-weight: bold;
+  color: #BB86FC;
+}
+
+form input {
+  padding: 0.75rem;
+  border: 1px solid #333;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+  background-color: #2A2A2A;
+  color: #fff;
+}
+
+form input:focus {
+  border-color: #6C4AB6;
+  outline: none;
+}
+
+/* Botões de formulário */
+button[type="submit"], form a {
+  background-color: #6C4AB6;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover, form a:hover {
+  background-color: #3C1E70;
+}
+
+/* Botões do formulário (Salvar/Cancelar) */
+.form-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+form a.cancelar {
+  background-color: #2E2E2E;
+  color: #E0E0E0;
+}
+
+form a.cancelar:hover {
+  background-color: #444;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tr {
+    background-color: #1E1E1E;
+    margin-bottom: 1rem;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 1rem;
+  }
+
+  td {
+    padding: 0.5rem;
+    position: relative;
+    text-align: right;
+  }
+
+  td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    top: 0.5rem;
+    font-weight: bold;
+    color: #BB86FC;
+  }
+}
+
