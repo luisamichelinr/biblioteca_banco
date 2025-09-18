@@ -1,14 +1,13 @@
-from urllib import request
-
 from flask import Flask, render_template, flash, redirect, url_for, request
 import fdb
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'sua_chave_secreta_aqui'
 
 # Mostrar para o python onde está e como acessar o banco
 host = 'localhost'
-database = r'C:\Users\Aluno\Downloads\LIVRO.FDB'
+database = r'C:\Users\Aluno\Documents\GitHub\biblioteca_banco\LIVRO.FDB'
 user = 'sysdba'
 password = 'sysdba'
 con = fdb.connect(host=host, database=database, user=user, password=password)
@@ -146,7 +145,7 @@ def editar_usuario(id):
         email = request.form['email']
         senha = request.form['senha']
 
-        cursor.execute('select 1 from usuario where usuario.email = ?', (email,))
+        cursor.execute('select 1 from usuario where usuario.email = ? and usuario.id_usuario != ?', (email, id,))
         if cursor.fetchone():
             flash('Esse email já foi cadastrado', 'error')
             return redirect(url_for('editar_usuario', id=usuario[0]))
@@ -155,7 +154,7 @@ def editar_usuario(id):
                        (nome, email, senha, id))
         con.commit()
         cursor.close()  # Fecha o cursor ao final da função, se não for uma requisição POST
-        flash('Usuário atualizado com sucesso', 'sucess')
+        flash('Usuário atualizado com sucesso', 'success')
         return redirect(url_for('usuarios'))
 
     cursor.close()
@@ -190,7 +189,7 @@ def login():
             flash('Usuário não foi encontrado', 'error')
             return redirect(url_for('login'))
         cursor.close()  # Fecha o cursor ao final da função, se não for uma requisição POST
-        flash('Usuário logado com sucesso', 'sucess')
+        flash('Usuário logado com sucesso', 'success')
         return redirect(url_for('index'))
     cursor.close()
     return render_template('login.html', titulo='Login')  # Renderiza a página de edição
