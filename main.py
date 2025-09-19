@@ -1,5 +1,7 @@
 from flask import Flask, render_template, flash, redirect, url_for, request
+from flask_bcrypt import generate_password_hash, check_password_hash
 import fdb
+from cryptography.fernet import Fernet
 
 
 app = Flask(__name__)
@@ -20,6 +22,8 @@ def index():
     cursor.close()
 
     return render_template('livros.html', livros=livros)
+
+
 
 @app.route('/novo')
 def novo():
@@ -109,6 +113,7 @@ def criar_usuario():
     nome = request.form['nome']
     email = request.form['email']
     senha = request.form['senha']
+    senha_cripto = generate_password_hash(senha).decode('utf-8')
 
     cursor = con.cursor()
     try:
@@ -117,7 +122,7 @@ def criar_usuario():
             flash('Esse email já foi cadastrado', 'error')
             return redirect(url_for('novo_usuario'))
         cursor.execute('insert into usuario(nome, email, senha) values(?, ?, ?)',
-                       (nome, email, senha))
+                       (nome, email, senha_cripto))
 
         con.commit()
     finally:
@@ -134,6 +139,8 @@ def editar_usuario(id):
     cursor = con.cursor()
     cursor.execute("select id_usuario, nome, email, senha from usuario where id_usuario = ?", (id,))
     usuario = cursor.fetchone()
+    senha_cripto = usuario[2]
+
 
     if not usuario:
         cursor.close()
@@ -143,15 +150,20 @@ def editar_usuario(id):
     if request.method == 'POST':
         nome = request.form['nome']
         email = request.form['email']
-        senha = request.form['senha']
+        nova_senha = request.form['senha']
 
         cursor.execute('select 1 from usuario where usuario.email = ? and usuario.id_usuario != ?', (email, id,))
         if cursor.fetchone():
             flash('Esse email já foi cadastrado', 'error')
             return redirect(url_for('editar_usuario', id=usuario[0]))
 
+        if not nova_senha:
+            nova_senha_cripto = senha_cripto
+        else:
+            nova_senha_cripto = generate_password_hash(nova_senha)
+
         cursor.execute("update usuario set nome = ?, email = ?, senha = ? where id_usuario = ?",
-                       (nome, email, senha, id))
+                       (nome, email, nova_senha_cripto, id))
         con.commit()
         cursor.close()  # Fecha o cursor ao final da função, se não for uma requisição POST
         flash('Usuário atualizado com sucesso', 'success')
@@ -181,16 +193,18 @@ def login():
     if request.method == 'POST':
         email = request.form['email']
         senha = request.form['senha']
-
-        cursor.execute("select id_usuario, nome, email, senha from usuario where email = ? and senha = ?", (email, senha,))
+        cursor.execute("select id_usuario, email, senha from usuario where email = ?", (email,))
         usuario = cursor.fetchone()
-        if not usuario:
+        senha_hash = usuario[2]
+        if not senha_hash:
             cursor.close()
             flash('Usuário não foi encontrado', 'error')
             return redirect(url_for('login'))
-        cursor.close()  # Fecha o cursor ao final da função, se não for uma requisição POST
-        flash('Usuário logado com sucesso', 'success')
-        return redirect(url_for('index'))
+
+        if check_password_hash(senha_hash, senha):
+            cursor.close()  # Fecha o cursor ao final da função, se não for uma requisição POST
+            flash('Usuário logado com sucesso', 'success')
+            return redirect(url_for('index'))
     cursor.close()
     return render_template('login.html', titulo='Login')  # Renderiza a página de edição
 
