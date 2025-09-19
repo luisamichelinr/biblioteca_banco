@@ -1,4 +1,4 @@
-from flask import Flask, render_template, flash, redirect, url_for, request, session
+from flask import Flask, render_template, flash, redirect, url_for, request, session, send_from_directory
 from flask_bcrypt import generate_password_hash, check_password_hash
 import fdb
 
@@ -44,8 +44,14 @@ def criar():
         if cursor.fetchone():
             flash('Esse livro já está cadastrado', 'error')
             return redirect(url_for('novo'))
-        cursor.execute('insert into livro(titulo, autor, ano_publicacao) values(?, ?, ?)',
-                       (titulo, autor, ano_publicacao))
+        cursor.execute(
+            "insert into livro(titulo, autor, ano_publicacao) VALUES (?, ?, ?) RETURNING id_livro",
+            (titulo, autor, ano_publicacao)
+        )
+        id_livro = cursor.fetchone()[0]
+        con.commit()
+        arquivo = request.files['arquivo']
+        arquivo.save(f'uploads/capa{id_livro}.jpg')
 
         con.commit()
     finally:
@@ -59,6 +65,10 @@ def atualizar():
         flash('Você precisa estar logado para acessar essa página', 'error')
         return redirect(url_for('login'))
     return render_template('editar.html', titulo='Editar Livro')
+
+@app.route('/uploads/<nome_arquivo>')
+def imagem(nome_arquivo):
+    return send_from_directory('uploads', nome_arquivo)
 
 @app.route('/editar/<int:id>', methods=['GET', 'POST'])
 def editar(id):
