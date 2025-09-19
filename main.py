@@ -1,7 +1,7 @@
-from flask import Flask, render_template, flash, redirect, url_for, request
+from flask import Flask, render_template, flash, redirect, url_for, request, session
 from flask_bcrypt import generate_password_hash, check_password_hash
 import fdb
-from cryptography.fernet import Fernet
+
 
 
 app = Flask(__name__)
@@ -27,6 +27,9 @@ def index():
 
 @app.route('/novo')
 def novo():
+    if "id_usuario" not in session:
+        flash('Você precisa estar logado para acessar essa página', 'error')
+        return redirect(url_for('login'))
     return render_template('novo.html', titulo='Novo livro')
 
 @app.route('/criar', methods=['POST'])
@@ -52,10 +55,16 @@ def criar():
 
 @app.route('/atualizar')
 def atualizar():
-        return render_template('editar.html', titulo='Editar Livro')
+    if "id_usuario" not in session:
+        flash('Você precisa estar logado para acessar essa página', 'error')
+        return redirect(url_for('login'))
+    return render_template('editar.html', titulo='Editar Livro')
 
 @app.route('/editar/<int:id>', methods=['GET', 'POST'])
 def editar(id):
+    if "id_usuario" not in session:
+        flash('Você precisa estar logado para acessar essa página', 'error')
+        return redirect(url_for('login'))
     cursor = con.cursor()
     cursor.execute("select id_livro, titulo, autor, ano_publicacao from livro where id_livro = ?", (id,))
     livro = cursor.fetchone()
@@ -84,6 +93,9 @@ def editar(id):
 def deletar(id):
     cursor = con.cursor()  # Abre o cursor
     try:
+        if "id_usuario" not in session:
+            flash('Você precisa estar logado para acessar essa página', 'error')
+            return redirect(url_for('login'))
         cursor.execute('DELETE FROM livro WHERE id_livro = ?', (id,))
         con.commit()  # Salva as alterações no banco de dados
         flash('Livro excluído com sucesso!', 'success')  # Mensagem de sucesso
@@ -97,6 +109,9 @@ def deletar(id):
 
 @app.route('/usuarios')
 def usuarios():
+    if "id_usuario" not in session:
+        flash('Você precisa estar logado para acessar essa página', 'error')
+        return redirect(url_for('login'))
     cursor = con.cursor()
     cursor.execute("select id_usuario, nome, email, senha from usuario")
     usuarios = cursor.fetchall()
@@ -132,6 +147,9 @@ def criar_usuario():
 
 @app.route('/atualizar_usuario')
 def atualizar_usuario():
+        if "id_usuario" not in session:
+            flash('Você precisa estar logado para acessar essa página', 'error')
+            return redirect(url_for('login'))
         return render_template('editar_usuario.html', titulo='Editar Usuário')
 
 @app.route('/editar_usuario/<int:id>', methods=['GET', 'POST'])
@@ -139,7 +157,7 @@ def editar_usuario(id):
     cursor = con.cursor()
     cursor.execute("select id_usuario, nome, email, senha from usuario where id_usuario = ?", (id,))
     usuario = cursor.fetchone()
-    senha_cripto = usuario[2]
+    senha_cripto = usuario[3]
 
 
     if not usuario:
@@ -174,8 +192,11 @@ def editar_usuario(id):
 
 @app.route('/deletar_usuario/<int:id>', methods=('POST',))
 def deletar_usuario(id):
-    cursor = con.cursor()  # Abre o cursor
+    cursor = con.cursor()
     try:
+        if "id_usuario" not in session:
+            flash('Você precisa estar logado para acessar essa página', 'error')
+            return redirect(url_for('login'))
         cursor.execute('DELETE FROM usuario WHERE id_usuario = ?', (id,))
         con.commit()  # Salva as alterações no banco de dados
         flash('Usuário excluído com sucesso!', 'success')  # Mensagem de sucesso
@@ -195,18 +216,23 @@ def login():
         senha = request.form['senha']
         cursor.execute("select id_usuario, email, senha from usuario where email = ?", (email,))
         usuario = cursor.fetchone()
-        senha_hash = usuario[2]
-        if not senha_hash:
+        if not usuario:
             cursor.close()
             flash('Usuário não foi encontrado', 'error')
             return redirect(url_for('login'))
-
+        senha_hash = usuario[2]
         if check_password_hash(senha_hash, senha):
             cursor.close()  # Fecha o cursor ao final da função, se não for uma requisição POST
+            session["id_usuario"] = usuario[0]
             flash('Usuário logado com sucesso', 'success')
             return redirect(url_for('index'))
     cursor.close()
     return render_template('login.html', titulo='Login')  # Renderiza a página de edição
+
+@app.route('/logout')
+def logout():
+    session.pop('id_usuario', None)
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
